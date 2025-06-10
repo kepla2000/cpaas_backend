@@ -2,7 +2,7 @@ package com.example.demo.Main_model;
 
 
 import jakarta.persistence.*;
-import org.springframework.data.annotation.Id;
+
 
 @Entity
 @Table(name = "users")
@@ -19,6 +19,7 @@ public class User {
 
     // Constructors, getters, setters
     public User() {}
+
     public User(String username, String password) {
         this.username = username;
         this.password = password;
