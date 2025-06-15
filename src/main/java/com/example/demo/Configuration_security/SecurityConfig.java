@@ -26,12 +26,22 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated())
+                        .requestMatchers("/whatsapp-send/sendtext").permitAll()
+                        .anyRequest().authenticated()
+                )
                 .oauth2Login();
 
         http.addFilterBefore((req, res, chain) -> {
-            HttpServletRequest objectx = (HttpServletRequest) req;
-            String header = objectx.getHeader("Authorization");
+            HttpServletRequest request = (HttpServletRequest) req;
+            String path = request.getRequestURI();
+
+            // ✅ Skip JWT filter for permitted endpoints
+            if (path.startsWith("/whatsapp-send/")) {
+                chain.doFilter(req, res);
+                return;
+            }
+
+            String header = request.getHeader("Authorization");
             if (header != null && header.startsWith("Bearer ")) {
                 String token = header.substring(7);
                 if (jwtUtil.validateToken(token)) {
@@ -41,9 +51,11 @@ public class SecurityConfig {
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
             }
+
             chain.doFilter(req, res);
         }, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 }
